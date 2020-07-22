@@ -2,16 +2,26 @@ const puppeteer = require('puppeteer')
 const chalk = require('chalk')
 const config = require('@ekino/config')
 
-const capture = async (browser, baseUrl, { path, selector, output }) => {
+const capture = async (page, baseUrl, { path, selector, output, theme }) => {
     const url = `${baseUrl}${path}?capture=1`
-
-    const page = await browser.newPage()
-    await page.setViewport({ width: 1400, height: 4000 })
 
     console.log(chalk`{yellow Capturing {white ${path}}} {dim (selector: ${selector})}`)
 
+    if (path.indexOf('/icons') !== -1) {
+        await page.setViewport({ width: 1400, height: 4000 })
+    } else {
+        await page.setViewport({ width: 1400, height: 900 })
+    }
+
     await page.goto(url)
 
+    if (theme !== undefined) {
+        const themeSelector = `#${theme}Theme`
+        await page.waitFor(themeSelector)
+        await page.click(themeSelector)
+    }
+
+    await page.waitFor(selector)
     const element = await page.$(selector)
     if (element === null) {
         throw new Error(`Unable to find element matching selector: '${selector}' (url: ${url})`)
@@ -35,9 +45,13 @@ const captureAll = async config => {
     console.log('')
 
     try {
-        const browser = await puppeteer.launch()
+        const browser = await puppeteer.launch({
+            headless: true
+        })
+        const page = await browser.newPage()
+
         for (let pageConfig of config.pages) {
-            await capture(browser, config.baseUrl, pageConfig)
+            await capture(page, config.baseUrl, pageConfig)
         }
 
         await browser.close()
@@ -46,8 +60,9 @@ const captureAll = async config => {
     } catch (error) {
         console.log('')
         console.error(chalk`{red oops, something went wrong :(}`)
+        console.error(error)
 
-        throw error
+        process.exit(1)
     }
 }
 

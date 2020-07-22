@@ -10,12 +10,14 @@
 
 const Joi = require('joi')
 const { Sankey, sankeyAlignmentPropKeys } = require('@nivo/sankey')
+const { ordinalColors, inheritedColor } = require('./commons/colors')
+const { dimensions } = require('./commons/dimensions')
 const common = require('./common')
 
 module.exports = {
     component: Sankey,
     schema: Joi.object().keys(
-        Object.assign({}, common.dimensions, {
+        Object.assign({}, dimensions, {
             data: Joi.object()
                 .keys({
                     nodes: Joi.array()
@@ -33,9 +35,7 @@ module.exports = {
                                 .keys({
                                     source: Joi.alternatives().try(Joi.string(), Joi.number()),
                                     target: Joi.alternatives().try(Joi.string(), Joi.number()),
-                                    value: Joi.number()
-                                        .min(0)
-                                        .required(),
+                                    value: Joi.number().min(0).required(),
                                 })
                                 .unknown()
                         )
@@ -43,35 +43,29 @@ module.exports = {
                 })
                 .required(),
 
+            layout: Joi.valid('horizontal', 'vertical'),
             align: Joi.any().valid(sankeyAlignmentPropKeys),
+            sort: Joi.valid('auto', 'input', 'ascending', 'descending'),
 
-            // nodes
-            nodeOpacity: Joi.number()
-                .min(0)
-                .max(1),
+            nodeOpacity: Joi.number().min(0).max(1),
             nodeWidth: Joi.number().min(1),
             nodePaddingX: Joi.number().positive(),
             nodePaddingY: Joi.number().positive(),
             nodeBorderWidth: Joi.number().min(0),
-            nodeBorderColor: Joi.string(),
+            nodeBorderColor: inheritedColor,
 
-            // links
-            linkOpacity: Joi.number()
-                .min(0)
-                .max(1),
+            linkOpacity: Joi.number().min(0).max(1),
             linkContract: Joi.number(),
             linkBlendMode: common.blendMode,
             enableLinkGradient: Joi.boolean(),
 
-            // labels
             enableLabels: Joi.boolean(),
             labelPosition: Joi.any().valid(['inside', 'outside']),
             labelPadding: Joi.number(),
             labelOrientation: Joi.any().valid(['horizontal', 'vertical']),
-            labelTextColor: Joi.string(),
+            labelTextColor: inheritedColor,
 
-            // theming
-            colors: Joi.string(),
+            colors: ordinalColors,
             colorBy: Joi.string(),
         })
     ),

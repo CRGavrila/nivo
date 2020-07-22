@@ -11,12 +11,15 @@
 const Joi = require('joi')
 const { Line } = require('@nivo/line')
 const { curvePropKeys } = require('@nivo/core')
+const { scale } = require('./commons/scales')
+const { ordinalColors, inheritedColor } = require('./commons/colors')
+const { dimensions } = require('./commons/dimensions')
 const common = require('./common')
 
 module.exports = {
     component: Line,
     schema: Joi.object().keys(
-        Object.assign({}, common.dimensions, common.axes, {
+        Object.assign({}, dimensions, common.axes, {
             data: Joi.array()
                 .items(
                     Joi.object()
@@ -43,52 +46,43 @@ module.exports = {
                 .min(1)
                 .required(),
 
-            xScale: common.scale,
-            yScale: common.scale,
+            xScale: scale,
+            yScale: scale,
 
             curve: Joi.any().valid(curvePropKeys),
 
-            // grid
             enableGridX: Joi.boolean(),
             enableGridY: Joi.boolean(),
 
             lineWidth: Joi.number().min(0),
 
-            // dots
-            enableDots: Joi.boolean(),
-            dotSize: Joi.number().min(0),
-            dotColor: Joi.string(),
-            dotBorderWidth: Joi.number().min(0),
-            dotBorderColor: Joi.string(),
-            enableDotLabel: Joi.boolean(),
-            dotLabel: Joi.string(),
-            dotLabelYOffset: Joi.number(),
+            enablePoints: Joi.boolean(),
+            pointSize: Joi.number().min(0),
+            pointColor: inheritedColor,
+            pointBorderWidth: Joi.number().min(0),
+            pointBorderColor: inheritedColor,
+            enablePointLabel: Joi.boolean(),
+            pointLabel: Joi.string(),
+            pointLabelYOffset: Joi.number(),
 
-            // areas
             enableArea: Joi.boolean(),
             areaBlendMode: common.blendMode,
             areaBaselineValue: Joi.alternatives().try(Joi.string(), Joi.number()),
             areaOpacity: Joi.number(),
 
-            // markers
             markers: Joi.array().items(
                 Joi.object().keys({
-                    axis: Joi.any()
-                        .valid(['x', 'y'])
-                        .required(),
-                    value: Joi.alternatives()
-                        .try(Joi.string(), Joi.number())
-                        .required(),
+                    axis: Joi.any().valid(['x', 'y']).required(),
+                    value: Joi.alternatives().try(Joi.string(), Joi.number()).required(),
                     style: Joi.object(),
                 })
             ),
 
-            // theming
-            colors: Joi.string(),
+            colors: ordinalColors,
             colorBy: Joi.string(),
         })
     ),
-    runtimeProps: ['width', 'height', 'colors', 'stacked'],
+    runtimeProps: ['width', 'height', 'colors'],
     defaults: {
         margin: { top: 40, right: 50, bottom: 40, left: 50 },
     },

@@ -1,3 +1,11 @@
+/*
+ * This file is part of the nivo project.
+ *
+ * Copyright 2016-present, Raphaël Benitte.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 import range from 'lodash/range'
 import random from 'lodash/random'
 import shuffle from 'lodash/shuffle'
@@ -186,25 +194,25 @@ const libTreeItems = [
     [
         'misc',
         [
-            ['whatever', [['hey'], ['WTF'], ['lol'], ['IMHO']]],
+            ['greetings', [['hey'], ['HOWDY'], ['aloha'], ['AHOY']]],
             ['other'],
             [
-                'crap',
+                'path',
                 [
-                    ['crapA'],
-                    ['crapB', [['crapB1'], ['crapB2'], ['crapB3'], ['crapB4']]],
+                    ['pathA'],
+                    ['pathB', [['pathB1'], ['pathB2'], ['pathB3'], ['pathB4']]],
                     [
-                        'crapC',
+                        'pathC',
                         [
-                            ['crapC1'],
-                            ['crapC2'],
-                            ['crapC3'],
-                            ['crapC4'],
-                            ['crapC5'],
-                            ['crapC6'],
-                            ['crapC7'],
-                            ['crapC8'],
-                            ['crapC9'],
+                            ['pathC1'],
+                            ['pathC2'],
+                            ['pathC3'],
+                            ['pathC4'],
+                            ['pathC5'],
+                            ['pathC6'],
+                            ['pathC7'],
+                            ['pathC8'],
+                            ['pathC9'],
                         ],
                     ],
                 ],
@@ -256,3 +264,4 @@ export * from './bullet'
 export * from './chord'
 export * from './parallelCoordinates'
 export * from './sankey'
+export * from './swarmplot'

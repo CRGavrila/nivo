@@ -1,3 +1,5 @@
+MAKEFLAGS += --no-print-directory
+
 SOURCES = packages
 
 .PHONY: help bootstrap init packages-build packages-publish clean-all website-install website website-build website-deploy storybook storybook-build storybook-deploy deploy-all examples-install
@@ -49,7 +51,6 @@ init: ##@0 global cleanup/install/bootstrap
 	@yarn install
 	@$(MAKE) bootstrap
 	@$(MAKE) packages-build
-	@$(MAKE) website-install
 	@$(MAKE) examples-install
 
 fmt: ##@0 global format code using prettier (js, css, md)
@@ -73,10 +74,9 @@ fmt-check: ##@0 global check if files were all formatted using prettier
 		"api/**/*.{js,ts,tsx}" \
         "README.md"
 
-test-all: ##@0 global run all checks/tests (packages, website & examples)
+test: ##@0 global run all checks/tests (packages, website & examples)
 	@$(MAKE) fmt-check
-	@$(MAKE) packages-lint
-	@$(MAKE) packages-tslint
+	@$(MAKE) lint
 	@$(MAKE) packages-test
 
 deploy-all: ##@0 global deploy website & storybook
@@ -102,6 +102,10 @@ define clean-source-all
 	rm -rf $(1)/*/package-lock.json
 endef
 
+lint: ##@0 run eslint & tslint
+	@$(MAKE) packages-lint
+	@$(MAKE) packages-tslint
+
 ########################################################################################################################
 #
 # PACKAGES
@@ -123,46 +127,44 @@ package-tslint-%: ##@1 packages run tslint on package
 packages-tslint: ##@1 packages run tslint on all packages
 	@echo "${YELLOW}Running tslint on all packages${RESET}"
 	@./node_modules/.bin/tslint \
-		./packages/axes/index.d.ts \
-	    ./packages/bar/index.d.ts \
-	    ./packages/calendar/index.d.ts \
-	    ./packages/core/index.d.ts \
-	    ./packages/heatmap/index.d.ts \
-	    ./packages/legends/index.d.ts \
-	    ./packages/line/index.d.ts \
+        ./packages/annotations/index.d.ts \
+        ./packages/axes/index.d.ts \
+        ./packages/bar/index.d.ts \
+        ./packages/calendar/index.d.ts \
+        ./packages/chord/index.d.ts \
+        ./packages/colors/index.d.ts \
+        ./packages/core/index.d.ts \
+        ./packages/geo/index.d.ts \
+        ./packages/heatmap/index.d.ts \
+        ./packages/legends/index.d.ts \
+        ./packages/line/index.d.ts \
+        ./packages/network/index.d.ts \
         ./packages/pie/index.d.ts \
+        ./packages/radar/index.d.ts \
         ./packages/sankey/index.d.ts \
         ./packages/scales/index.d.ts \
         ./packages/scatterplot/index.d.ts \
-        ./packages/waffle/index.d.ts
+        ./packages/stream/index.d.ts \
+        ./packages/swarmplot/index.d.ts \
+        ./packages/waffle/index.d.ts \
+        ./packages/voronoi/index.d.ts
+
+package-test-cover-%: ##@1 packages run tests for a package with code coverage
+	@yarn jest -c ./packages/jest.config.js --rootDir . --coverage ./packages/${*}/tests
 
 package-test-%: ##@1 packages run tests for a package
-	@./node_modules/.bin/jest \
-        --setupFiles=./setupTests.js \
-        --setupTestFrameworkScriptFile=raf/polyfill \
-        --env=jsdom \
-        --verbose \
-        ./packages/${*}/tests
+	@yarn jest -c ./packages/jest.config.js --rootDir . ./packages/${*}/tests
 
 package-update-test-%: ##@1 packages run tests for a package and update its snapshots
-	@./node_modules/.bin/jest \
-        --setupFiles=./setupTests.js \
-        --setupTestFrameworkScriptFile=raf/polyfill \
-        --env=jsdom \
-        ./packages/${*}/tests \
-        -u
+	@yarn jest -c ./packages/jest.config.js --rootDir . ./packages/${*}/tests -u
 
 packages-test: ##@1 packages run tests for all packages
 	@echo "${YELLOW}Running test suites for all packages${RESET}"
-	@./node_modules/.bin/jest \
-        --setupFiles=./setupTests.js \
-        --setupTestFrameworkScriptFile=raf/polyfill \
-        --env=jsdom \
-        ./packages/*/tests
+	@yarn jest -c ./packages/jest.config.js --rootDir . ./packages/*/tests
 
 packages-test-cover: ##@1 packages run tests for all packages with code coverage
 	@echo "${YELLOW}Running test suites for all packages${RESET}"
-	@./node_modules/.bin/jest --coverage --setupTestFrameworkScriptFile=raf/polyfill ./packages/*/tests
+	@yarn jest -c ./packages/jest.config.js --rootDir . --coverage ./packages/*/tests
 
 packages-build: ##@1 packages build all packages
 	@echo "${YELLOW}Building all packages${RESET}"
@@ -172,9 +174,8 @@ packages-build: ##@1 packages build all packages
 
 package-build-%: ##@1 packages build a package
 	@echo "${YELLOW}Building package ${WHITE}@nivo/${*}${RESET}"
-	@rm -rf ./packages/${*}/cjs
-	@rm -rf ./packages/${*}/umd
-	@export PACKAGE=${*}; ./node_modules/.bin/rollup -c conf/rollup.config.js
+	@rm -rf ./packages/${*}/dist
+	@export PACKAGE=${*}; NODE_ENV=production BABEL_ENV=production ./node_modules/.bin/rollup -c conf/rollup.config.js
 
 packages-screenshots: ##@1 packages generate screenshots for packages readme (website dev server must be running)
 	@node scripts/capture.js
@@ -183,24 +184,23 @@ packages-publish: ##@1 packages publish all packages
 	@$(MAKE) packages-build
 
 	@echo "${YELLOW}Publishing packages${RESET}"
-	@./node_modules/.bin/lerna publish ---exact
+	@./node_modules/.bin/lerna publish --exact
 
 packages-publish-next: ##@1 packages publish all packages for @next npm tag
 	@$(MAKE) packages-build
 
 	@echo "${YELLOW}Publishing packages${RESET}"
-	@./node_modules/.bin/lerna publish ---exact --npm-tag=next
+	@./node_modules/.bin/lerna publish --exact --npm-tag=next
 
 package-watch-%: ##@1 packages build package (es flavor) on change, eg. `package-build-watch-bar`
 	@echo "${YELLOW}Running build watcher for package ${WHITE}@nivo/${*}${RESET}"
 	@rm -rf ./packages/${*}/cjs
 	@rm -rf ./packages/${*}/umd
-	@export PACKAGE=${*}; ./node_modules/.bin/rollup -c conf/rollup.config.js -w
+	@export PACKAGE=${*}; NODE_ENV=development BABEL_ENV=development ./node_modules/.bin/rollup -c conf/rollup.config.js -w
 
 package-dev-%: ##@1 packages setup package for development, link to website, run watcher
 	@echo "${YELLOW}Preparing package ${WHITE}${*}${YELLOW} for development${RESET}"
 	@cd packages/${*} && yarn link
-	@cd website && yarn link @nivo/${*}
 	@cd examples/typescript && yarn link @nivo/${*}
 	@$(MAKE) package-watch-${*}
 
@@ -209,10 +209,6 @@ package-dev-%: ##@1 packages setup package for development, link to website, run
 # WEBSITE
 #
 ########################################################################################################################
-
-website-install: ##@2 website install website dependencies
-	@echo "${YELLOW}Installing website dependencies${RESET}"
-	@cd website && yarn install
 
 website-deps-up: ##@2 website interactive upgrade of website's dependencies
 	@yarn upgrade-interactive --latest
@@ -227,31 +223,19 @@ website-build: ##@2 website build website
 
 website-serve: ##@2 website build & serve website
 	@$(MAKE) website-build
-	@./node_modules/.bin/serve -l 5678 ./website/build
+	@cd website && yarn serve
 
 website-deploy: ##@2 website build & deploy website
 	@$(MAKE) website-build
 
 	@echo "${YELLOW}Deploying website${RESET}"
-	@./node_modules/.bin/gh-pages -d website/build -r git@github.com:plouc/nivo.git -b gh-pages
+	@./node_modules/.bin/gh-pages -d website/public -r git@github.com:plouc/nivo.git -b gh-pages
 
 website-audit: ##@2 website audit website build
 	@cd website && yarn analyze
 
-website-links-ls: ##@2 website list linked packages
-	@echo "${YELLOW}Which packages are currently being linked to ${WHITE}website${YELLOW}?${RESET}"
-	@cd website; \
-    find node_modules node_modules/\@* -depth 1 -type l -print | awk -F/ '{print $$(NF)}' | while read MODULE; do \
-        echo "> linked package: ${WHITE}$${MODULE}${RESET}"; \
-    done
-
-website-links-rm: ##@2 website unlink all linked packages
-	@echo "${YELLOW}Unlinking all packages for ${WHITE}website${RESET}"
-	@cd website; \
-    find node_modules node_modules/\@* -depth 1 -type l -print | awk -F/ '{print $$(NF)}' | while read MODULE; do \
-        yarn unlink "@nivo/$${MODULE}"; \
-    done
-	@$(MAKE) website-install
+website-sprites: ##@2 website build sprite sheet
+	@glue --img website/src/assets --css website/src/styles website/src/assets/icons
 
 ########################################################################################################################
 #
@@ -260,11 +244,11 @@ website-links-rm: ##@2 website unlink all linked packages
 ########################################################################################################################
 
 storybook: ##@3 storybook start storybook in dev mode on port 6006
-	@./node_modules/.bin/start-storybook -p 6006
+	@yarn start-storybook -p 6006
 
 storybook-build: ##@3 storybook build storybook
 	@echo "${YELLOW}Building storybook${RESET}"
-	@./node_modules/.bin/build-storybook
+	@yarn build-storybook
 
 storybook-deploy: ##@3 storybook build and deploy storybook
 	@$(MAKE) storybook-build
@@ -315,3 +299,5 @@ api: ##@5 API run API in regular mode (no watcher)
 	@echo "${YELLOW}Starting API${RESET}"
 	@cd api && yarn start
 
+api-deploy: ##@5 Deploy API on heroku
+	git subtree push --prefix api heroku master

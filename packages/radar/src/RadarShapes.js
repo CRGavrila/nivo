@@ -6,85 +6,68 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-import React from 'react'
-import compose from 'recompose/compose'
-import withPropsOnChange from 'recompose/withPropsOnChange'
-import pure from 'recompose/pure'
+import React, { memo, useMemo } from 'react'
 import PropTypes from 'prop-types'
-import { motionPropTypes } from '@nivo/core'
-import { getInheritedColorGenerator } from '@nivo/core'
-import { SmartMotion } from '@nivo/core'
+import { useSprings, animated } from 'react-spring'
 import { lineRadial } from 'd3-shape'
+import { useMotionConfig, useTheme, blendModePropType } from '@nivo/core'
+import { useInheritedColor, inheritedColorPropType } from '@nivo/colors'
 
-const RadarShapes = ({
-    data,
-    keys,
-    colorByKey,
-    lineGenerator,
+const RadarShapes = memo(
+    ({
+        data,
+        keys,
+        colorByKey,
+        radiusScale,
+        angleStep,
+        curveInterpolator,
+        borderWidth,
+        borderColor,
+        fillOpacity,
+        blendMode,
+    }) => {
+        const theme = useTheme()
+        const getBorderColor = useInheritedColor(borderColor, theme)
 
-    // border
-    borderWidth,
-    borderColor,
+        const lineGenerator = useMemo(() => {
+            return lineRadial()
+                .radius(d => radiusScale(d))
+                .angle((d, i) => i * angleStep)
+                .curve(curveInterpolator)
+        }, [radiusScale, angleStep, curveInterpolator])
 
-    // theming
-    fillOpacity,
-
-    // motion
-    animate,
-    motionStiffness,
-    motionDamping,
-}) => {
-    if (animate !== true) {
-        return (
-            <g>
-                {keys.map(key => {
-                    return (
-                        <path
-                            key={key}
-                            d={lineGenerator(data.map(d => d[key]))}
-                            fill={colorByKey[key]}
-                            fillOpacity={fillOpacity}
-                            stroke={borderColor({ key, color: colorByKey[key] })}
-                            strokeWidth={borderWidth}
-                        />
-                    )
-                })}
-            </g>
+        const { animate, config: springConfig } = useMotionConfig()
+        const springs = useSprings(
+            keys.length,
+            keys.map(key => ({
+                path: lineGenerator(data.map(d => d[key])),
+                fill: colorByKey[key],
+                stroke: getBorderColor({ key, color: colorByKey[key] }),
+                config: springConfig,
+                immediate: !animate,
+            }))
         )
+
+        return springs.map((animatedProps, index) => {
+            const key = keys[index]
+
+            return (
+                <animated.path
+                    key={key}
+                    d={animatedProps.path}
+                    fill={animatedProps.fill}
+                    fillOpacity={fillOpacity}
+                    stroke={animatedProps.stroke}
+                    strokeWidth={borderWidth}
+                    style={{ mixBlendMode: blendMode }}
+                />
+            )
+        })
     }
+)
 
-    const springConfig = {
-        stiffness: motionStiffness,
-        damping: motionDamping,
-    }
-
-    return (
-        <g>
-            {keys.map(key => {
-                return (
-                    <SmartMotion
-                        key={key}
-                        style={spring => ({
-                            d: spring(lineGenerator(data.map(d => d[key])), springConfig),
-                            fill: spring(colorByKey[key], springConfig),
-                            stroke: spring(
-                                borderColor({ key, color: colorByKey[key] }),
-                                springConfig
-                            ),
-                        })}
-                    >
-                        {style => (
-                            <path fillOpacity={fillOpacity} strokeWidth={borderWidth} {...style} />
-                        )}
-                    </SmartMotion>
-                )
-            })}
-        </g>
-    )
-}
-
+RadarShapes.displayName = 'RadarShapes'
 RadarShapes.propTypes = {
-    // data
     data: PropTypes.arrayOf(PropTypes.object).isRequired,
     keys: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.number])).isRequired,
     colorByKey: PropTypes.object.isRequired,
@@ -93,33 +76,12 @@ RadarShapes.propTypes = {
     angleStep: PropTypes.number.isRequired,
 
     curveInterpolator: PropTypes.func.isRequired,
-    lineGenerator: PropTypes.func.isRequired,
 
-    // border
     borderWidth: PropTypes.number.isRequired,
-    borderColor: PropTypes.func.isRequired,
+    borderColor: inheritedColorPropType.isRequired,
 
-    // theming
     fillOpacity: PropTypes.number.isRequired,
-
-    // motion
-    ...motionPropTypes,
+    blendMode: blendModePropType.isRequired,
 }
 
-const enhance = compose(
-    withPropsOnChange(['borderColor'], props => ({
-        borderColor: getInheritedColorGenerator(props.borderColor),
-    })),
-    withPropsOnChange(
-        ['radiusScale', 'angleStep', 'curveInterpolator'],
-        ({ radiusScale, angleStep, curveInterpolator }) => ({
-            lineGenerator: lineRadial()
-                .radius(d => radiusScale(d))
-                .angle((d, i) => i * angleStep)
-                .curve(curveInterpolator),
-        })
-    ),
-    pure
-)
-
-export default enhance(RadarShapes)
+export default RadarShapes

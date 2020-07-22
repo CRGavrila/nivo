@@ -1,23 +1,33 @@
+/*
+ * This file is part of the nivo project.
+ *
+ * Copyright 2016-present, Raphaël Benitte.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 import * as React from 'react'
 import {
     Dimensions,
     Box,
     Theme,
     MotionProps,
-    ColorProps,
-    GetColor,
     SvgDefsAndFill,
     CartesianMarkerProps,
 } from '@nivo/core'
+import { AxisProps, GridValues } from '@nivo/axes'
+import { OrdinalColorsInstruction, InheritedColorProp } from '@nivo/colors'
 import { LegendProps } from '@nivo/legends'
 
 declare module '@nivo/bar' {
+    export type Value = string | number
+
     export interface Data {
         data: object[]
     }
 
     export interface BarDatum {
-        [key: string]: string | number
+        [key: string]: Value
     }
 
     export type BarDatumWithColor = BarDatum & {
@@ -25,10 +35,10 @@ declare module '@nivo/bar' {
     }
 
     export interface BarExtendedDatum {
-        id: string | number
+        id: Value
         value: number
         index: number
-        indexValue: string | number
+        indexValue: Value
         color: string
         data: BarDatum
     }
@@ -41,9 +51,9 @@ declare module '@nivo/bar' {
 
     export type ValueFormatter = (value: number) => string | number
 
-    export type BarClickHandler = (
+    export type BarMouseEventHandler<T = HTMLCanvasElement> = (
         datum: BarExtendedDatum,
-        event: React.MouseEvent<HTMLCanvasElement>
+        event: React.MouseEvent<T>
     ) => void
 
     export type TooltipProp = React.StatelessComponent<BarExtendedDatum>
@@ -65,7 +75,9 @@ declare module '@nivo/bar' {
         label: string
         shouldRenderLabel: boolean
         labelColor: string
-        onClick: BarClickHandler
+        onClick: BarMouseEventHandler
+        onMouseEnter: BarMouseEventHandler
+        onMouseLeave: BarMouseEventHandler
         tooltipFormat: string | ValueFormatter
         tooltip: TooltipProp
         showTooltip: (tooltip: React.ReactNode, event: React.MouseEvent<HTMLCanvasElement>) => void
@@ -73,62 +85,53 @@ declare module '@nivo/bar' {
         theme: Theme
     }
 
-    export type BarProps = ColorProps<BarDatum> &
-        Partial<{
-            indexBy: string | IndexByFunc
-            keys: string[]
+    export type BarProps = Partial<{
+        indexBy: string | IndexByFunc
+        keys: string[]
 
-            groupMode: 'stacked' | 'grouped'
-            layout: 'horizontal' | 'vertical'
-            reverse: boolean
+        groupMode: 'stacked' | 'grouped'
+        layout: 'horizontal' | 'vertical'
+        reverse: boolean
 
-            innerPadding: number
-            minValue: number | 'auto'
-            margin: Box
-            maxValue: number | 'auto'
-            padding: number
+        innerPadding: number
+        minValue: number | 'auto'
+        margin: Box
+        maxValue: number | 'auto'
+        padding: number
 
-            axisBottom: Axis
-            axisLeft: Axis
-            axisRight: Axis
-            axisTop: Axis
+        axisBottom: AxisProps | null
+        axisLeft: AxisProps | null
+        axisRight: AxisProps | null
+        axisTop: AxisProps | null
 
-            enableGridX: boolean
-            enableGridY: boolean
+        enableGridX: boolean
+        gridXValues: GridValues<Value>
+        enableGridY: boolean
+        gridYValues: GridValues<Value>
 
-            barComponent: React.StatelessComponent<BarItemProps>
+        barComponent: React.StatelessComponent<BarItemProps>
 
-            enableLabel: boolean
-            label: string | AccessorFunc
-            labelFormat: string | LabelFormatter
-            labelLinkColor: string | GetColor<BarDatumWithColor>
-            labelSkipWidth: number
-            labelSkipHeight: number
-            labelTextColor: string | GetColor<BarDatumWithColor>
+        enableLabel: boolean
+        label: string | AccessorFunc
+        labelFormat: string | LabelFormatter
+        labelLinkColor: InheritedColorProp<BarDatumWithColor>
+        labelSkipWidth: number
+        labelSkipHeight: number
+        labelTextColor: InheritedColorProp<BarDatumWithColor>
 
-            borderRadius: number
-            borderWidth: number
-            theme: Theme
+        colors: OrdinalColorsInstruction
+        borderColor: InheritedColorProp<BarDatumWithColor>
+        borderRadius: number
+        borderWidth: number
+        theme: Theme
 
-            isInteractive: boolean
-            tooltipFormat: string | ValueFormatter
-            tooltip: TooltipProp
+        isInteractive: boolean
+        tooltipFormat: string | ValueFormatter
+        tooltip: TooltipProp
 
-            legends: Array<{ dataFrom: 'indexes' | 'keys' } & LegendProps>
+        legends: ({ dataFrom: 'indexes' | 'keys' } & LegendProps)[]
 
-            markers: CartesianMarkerProps[]
-        }>
-
-    export type Axis = Partial<{
-        format: string | LabelFormatter
-        legend: string
-        legendOffset: number
-        legendPosition: 'start' | 'center' | 'end'
-        orient: 'top' | 'right' | 'bottom' | 'left'
-        tickPadding: number
-        tickRotation: number
-        tickSize: number
-        tickValues: number | string[] | number[]
+        markers: CartesianMarkerProps[]
     }>
 
     export enum BarLayerType {
@@ -147,7 +150,9 @@ declare module '@nivo/bar' {
         SvgDefsAndFill<BarDatum> &
         Partial<{
             layers: Layer[]
-            onClick: (datum: BarExtendedDatum, event: React.MouseEvent<SVGRectElement>) => void
+            onClick: BarMouseEventHandler<SVGRectElement>
+            onMouseEnter: BarMouseEventHandler<SVGRectElement>
+            onMouseLeave: BarMouseEventHandler<SVGRectElement>
         }>
 
     export class Bar extends React.Component<BarSvgProps & Dimensions> {}
@@ -156,7 +161,9 @@ declare module '@nivo/bar' {
     export type BarCanvasProps = Data &
         BarProps &
         Partial<{
-            onClick: BarClickHandler
+            onClick: BarMouseEventHandler
+            onMouseEnter: BarMouseEventHandler
+            onMouseLeave: BarMouseEventHandler
             pixelRatio: number
         }>
 

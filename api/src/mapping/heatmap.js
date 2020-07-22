@@ -10,53 +10,36 @@
 
 const Joi = require('joi')
 const { HeatMap } = require('@nivo/heatmap')
+const { dimensions } = require('./commons/dimensions')
+const { inheritedColor } = require('./commons/colors')
 const common = require('./common')
 
 module.exports = {
     component: HeatMap,
     schema: Joi.object().keys(
-        Object.assign({}, common.dimensions, common.axes, {
-            // data
-            data: Joi.array()
-                .min(1)
-                .required(),
+        Object.assign({}, dimensions, common.axes, {
+            data: Joi.array().min(1).required(),
             indexBy: Joi.string().required(),
-            keys: Joi.array()
-                .sparse(false)
-                .min(1)
-                .unique()
-                .required(),
+            keys: Joi.array().sparse(false).min(1).unique().required(),
 
-            minValue: Joi.alternatives()
-                .try(Joi.any().valid('auto'), Joi.number())
-                .required(),
-            maxValue: Joi.alternatives()
-                .try(Joi.any().valid('auto'), Joi.number())
-                .required(),
+            minValue: Joi.alternatives().try(Joi.any().valid('auto'), Joi.number()).required(),
+            maxValue: Joi.alternatives().try(Joi.any().valid('auto'), Joi.number()).required(),
 
             forceSquare: Joi.boolean(),
-            sizeVariation: Joi.number()
-                .min(0)
-                .max(1),
+            sizeVariation: Joi.number().min(0).max(1),
             padding: Joi.number(),
 
-            // cells
             cellShape: Joi.any().valid(['rect', 'circle']),
-            cellOpacity: Joi.number()
-                .min(0)
-                .max(1),
+            cellOpacity: Joi.number().min(0).max(1),
             cellBorderWidth: Joi.number().min(0),
-            cellBorderColor: Joi.string(),
+            cellBorderColor: inheritedColor,
 
-            // grid
             enableGridX: Joi.boolean(),
             enableGridY: Joi.boolean(),
 
-            // labels
             enableLabels: Joi.boolean(),
-            labelTextColor: Joi.string(),
+            labelTextColor: inheritedColor,
 
-            // theming
             colors: Joi.string(),
         })
     ),

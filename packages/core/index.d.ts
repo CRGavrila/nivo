@@ -1,6 +1,32 @@
 import * as React from 'react'
 
 declare module '@nivo/core' {
+    export type DatumValue = string | number | Date
+
+    export interface Dimensions {
+        height: number
+        width: number
+    }
+
+    export type Box = Partial<{
+        bottom: number
+        left: number
+        right: number
+        top: number
+    }>
+    export type BoxAlign =
+        | 'center'
+        | 'top-left'
+        | 'top'
+        | 'top-right'
+        | 'right'
+        | 'bottom-right'
+        | 'bottom'
+        | 'bottom-left'
+        | 'left'
+    export const boxAlignments: BoxAlign[]
+    export function alignBox(box: Box, container: Box, alignment: BoxAlign): [number, number]
+
     export type GetColor<T> = (datum: T) => string
     export type Colors = string[] | string
     export interface ColorProps<T> {
@@ -9,6 +35,14 @@ declare module '@nivo/core' {
     }
 
     export type Theme = Partial<{
+        crosshair: Partial<{
+            line: Partial<{
+                stroke: string
+                strokeWidth: number
+                strokeOpacity: number
+                strokeDasharray: string
+            }>
+        }>
         background: string
         axis: Partial<{
             domain: Partial<{
@@ -43,21 +77,10 @@ declare module '@nivo/core' {
         tooltip: Partial<{
             container: Partial<React.CSSProperties>
             basic: Partial<React.CSSProperties>
+            chip: Partial<React.CSSProperties>
             table: Partial<React.CSSProperties>
             tableCell: Partial<React.CSSProperties>
         }>
-    }>
-
-    export interface Dimensions {
-        height: number
-        width: number
-    }
-
-    export type Box = Partial<{
-        bottom: number
-        left: number
-        right: number
-        top: number
     }>
 
     export type MotionProps = Partial<{
@@ -68,11 +91,11 @@ declare module '@nivo/core' {
 
     export type SvgFillMatcher<T> = (datum: T) => boolean
     export interface SvgDefsAndFill<T> {
-        defs?: Array<{
+        defs?: {
             id: string
             [key: string]: any
-        }>
-        fill?: Array<{ id: string; match: object | SvgFillMatcher<T> | '*' }>
+        }[]
+        fill?: { id: string; match: object | SvgFillMatcher<T> | '*' }[]
     }
 
     export interface CartesianMarkerProps {
@@ -83,24 +106,41 @@ declare module '@nivo/core' {
         textStyle?: Partial<React.CSSProperties>
     }
 
-    export interface BasicTooltipProps {
-        id: React.ReactNode
-        value?: string | number
-        enableChip?: boolean
-        color: string
-        format?: (value: number | string) => number | string
-        renderContent?: () => React.ReactNode
-        theme: Pick<Theme, 'tooltip'>
-    }
+    export type CssMixBlendMode =
+        | 'normal'
+        | 'multiply'
+        | 'screen'
+        | 'overlay'
+        | 'darken'
+        | 'lighten'
+        | 'color-dodge'
+        | 'color-burn'
+        | 'hard-light'
+        | 'soft-light'
+        | 'difference'
+        | 'exclusion'
+        | 'hue'
+        | 'saturation'
+        | 'color'
+        | 'luminosity'
 
-    export class BasicTooltip extends React.Component<BasicTooltipProps> {}
+    export type StackOrder = 'ascending' | 'descending' | 'insideOut' | 'none' | 'reverse'
 
-    export interface TableTooltipProps {
-        title?: React.ReactNode
-        rows: React.ReactNode[][]
-        theme: Pick<Theme, 'tooltip'>
-        renderContent?: () => React.ReactNode
-    }
+    export type StackOffset = 'expand' | 'diverging' | 'none' | 'silhouette' | 'wiggle'
 
-    export class TableTooltip extends React.Component<TableTooltipProps> {}
+    export type AreaCurve =
+        | 'basis'
+        | 'cardinal'
+        | 'catmullRom'
+        | 'linear'
+        | 'monotoneX'
+        | 'monotoneY'
+        | 'natural'
+        | 'step'
+        | 'stepAfter'
+        | 'stepBefore'
+
+    export type DataFormatter = (value: DatumValue) => string | number
+
+    export function useValueFormatter(formatter?: DataFormatter | string): DataFormatter
 }

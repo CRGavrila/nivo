@@ -11,53 +11,41 @@
 const Joi = require('joi')
 const { Bar } = require('@nivo/bar')
 const common = require('./common')
+const { dimensions } = require('./commons/dimensions')
+const { inheritedColor, ordinalColors } = require('./commons/colors')
 
 module.exports = {
     component: Bar,
     schema: Joi.object().keys(
-        Object.assign({}, common.dimensions, common.axes, {
-            // data
-            data: Joi.array()
-                .min(1)
-                .required(),
+        Object.assign({}, dimensions, common.axes, {
+            data: Joi.array().min(1).required(),
             indexBy: Joi.string().required(),
-            keys: Joi.array()
-                .sparse(false)
-                .min(1)
-                .unique()
-                .required(),
+            keys: Joi.array().sparse(false).min(1).unique().required(),
 
             groupMode: Joi.any().valid(['grouped', 'stacked']),
             layout: Joi.any().valid(['horizontal', 'vertical']),
             reverse: Joi.boolean(),
 
-            minValue: Joi.alternatives()
-                .try(Joi.any().valid('auto'), Joi.number())
-                .required(),
-            maxValue: Joi.alternatives()
-                .try(Joi.any().valid('auto'), Joi.number())
-                .required(),
+            minValue: Joi.alternatives().try(Joi.any().valid('auto'), Joi.number()).required(),
+            maxValue: Joi.alternatives().try(Joi.any().valid('auto'), Joi.number()).required(),
             padding: Joi.number(),
             innerPadding: Joi.number(),
 
             borderRadius: Joi.number().min(0),
             borderWidth: Joi.number().min(0),
-            borderColor: Joi.string(),
+            borderColor: inheritedColor,
 
-            // grid
             enableGridX: Joi.boolean(),
             enableGridY: Joi.boolean(),
 
-            // labels
             enableLabel: Joi.boolean(),
             label: Joi.string(),
             labelSkipWidth: Joi.number(),
             labelSkipHeight: Joi.number(),
             labelLinkColor: Joi.string(),
-            labelTextColor: Joi.string(),
+            labelTextColor: inheritedColor,
 
-            // theming
-            colors: Joi.string(),
+            colors: ordinalColors,
             colorBy: Joi.string(),
         })
     ),

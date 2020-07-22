@@ -1,18 +1,23 @@
 import React from 'react'
 import { mount } from 'enzyme'
-import { Axis } from '@nivo/axes'
 import Line from '../src/Line'
-import LineSlicesItem from '../src/LineSlicesItem'
+import SlicesItem from '../src/SlicesItem'
 import renderer from 'react-test-renderer'
 
 it('should render a basic line chart', () => {
     const data = [
         {
             id: 'A',
-            data: [{ x: 0, y: 3 }, { x: 1, y: 7 }, { x: 2, y: 11 }, { x: 3, y: 9 }, { x: 4, y: 8 }],
+            data: [
+                { x: 0, y: 3 },
+                { x: 1, y: 7 },
+                { x: 2, y: 11 },
+                { x: 3, y: 9 },
+                { x: 4, y: 8 },
+            ],
         },
     ]
-    const component = renderer.create(<Line width={500} height={300} data={data} />)
+    const component = renderer.create(<Line width={500} height={300} data={data} animate={false} />)
 
     let tree = component.toJSON()
     expect(tree).toMatchSnapshot()
@@ -22,14 +27,26 @@ it('should support multiple lines', () => {
     const data = [
         {
             id: 'A',
-            data: [{ x: 0, y: 3 }, { x: 1, y: 7 }, { x: 2, y: 11 }, { x: 3, y: 9 }, { x: 4, y: 8 }],
+            data: [
+                { x: 0, y: 3 },
+                { x: 1, y: 7 },
+                { x: 2, y: 11 },
+                { x: 3, y: 9 },
+                { x: 4, y: 8 },
+            ],
         },
         {
             id: 'B',
-            data: [{ x: 0, y: 1 }, { x: 1, y: 3 }, { x: 2, y: 5 }, { x: 3, y: 7 }, { x: 4, y: 11 }],
+            data: [
+                { x: 0, y: 1 },
+                { x: 1, y: 3 },
+                { x: 2, y: 5 },
+                { x: 3, y: 7 },
+                { x: 4, y: 11 },
+            ],
         },
     ]
-    const component = renderer.create(<Line width={500} height={300} data={data} />)
+    const component = renderer.create(<Line width={500} height={300} data={data} animate={false} />)
 
     let tree = component.toJSON()
     expect(tree).toMatchSnapshot()
@@ -39,30 +56,44 @@ it('should create slice for each x value', () => {
     const data = [
         {
             id: 'A',
-            data: [{ x: 0, y: 3 }, { x: 1, y: 7 }, { x: 2, y: 11 }, { x: 3, y: 9 }, { x: 4, y: 8 }],
+            data: [
+                { x: 0, y: 3 },
+                { x: 1, y: 7 },
+                { x: 2, y: 11 },
+                { x: 3, y: 9 },
+                { x: 4, y: 8 },
+            ],
         },
     ]
-    const wrapper = mount(<Line width={500} height={300} data={data} />)
+    const wrapper = mount(
+        <Line width={500} height={300} data={data} enableSlices="x" animate={false} />
+    )
 
-    const slices = wrapper.find(LineSlicesItem)
+    const slices = wrapper.find(SlicesItem)
     expect(slices).toHaveLength(5)
     expect(slices.at(0).prop('slice').id).toBe(0)
-    expect(slices.at(1).prop('slice').id).toBe(1)
-    expect(slices.at(2).prop('slice').id).toBe(2)
-    expect(slices.at(3).prop('slice').id).toBe(3)
-    expect(slices.at(4).prop('slice').id).toBe(4)
+    expect(slices.at(1).prop('slice').id).toBe(125)
+    expect(slices.at(2).prop('slice').id).toBe(250)
+    expect(slices.at(3).prop('slice').id).toBe(375)
+    expect(slices.at(4).prop('slice').id).toBe(500)
 })
 
 it('should have left and bottom axis by default', () => {
     const data = [
         {
             id: 'A',
-            data: [{ x: 0, y: 3 }, { x: 1, y: 7 }, { x: 2, y: 11 }, { x: 3, y: 9 }, { x: 4, y: 8 }],
+            data: [
+                { x: 0, y: 3 },
+                { x: 1, y: 7 },
+                { x: 2, y: 11 },
+                { x: 3, y: 9 },
+                { x: 4, y: 8 },
+            ],
         },
     ]
-    const wrapper = mount(<Line width={500} height={300} data={data} />)
+    const wrapper = mount(<Line width={500} height={300} data={data} animate={false} />)
 
-    const axes = wrapper.find(Axis)
+    const axes = wrapper.find('Axis')
     expect(axes).toHaveLength(2)
     expect(axes.at(0).prop('axis')).toBe('x')
     expect(axes.at(1).prop('axis')).toBe('y')
@@ -84,7 +115,13 @@ describe('curve interpolation', () => {
     const data = [
         {
             id: 'default',
-            data: [{ x: 0, y: 3 }, { x: 1, y: 7 }, { x: 2, y: 11 }, { x: 3, y: 9 }, { x: 4, y: 8 }],
+            data: [
+                { x: 0, y: 3 },
+                { x: 1, y: 7 },
+                { x: 2, y: 11 },
+                { x: 3, y: 9 },
+                { x: 4, y: 8 },
+            ],
         },
     ]
     for (const curveInterpolation of curveInterpolations) {

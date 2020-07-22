@@ -1,6 +1,8 @@
 import * as React from 'react'
-import { Dimensions, Box, MotionProps, ColorProps, GetColor, Theme } from '@nivo/core'
-import { Axis } from '@nivo/axes'
+import { Dimensions, Box, MotionProps, ColorProps, Theme } from '@nivo/core'
+import { AxisProps } from '@nivo/axes'
+import { InheritedColorProp } from '@nivo/colors'
+import { BasicTooltipProps } from '@nivo/tooltip'
 
 declare module '@nivo/heatmap' {
     export interface HeatMapDatum {
@@ -33,24 +35,25 @@ declare module '@nivo/heatmap' {
             cellShape: 'rect' | 'circle' | React.StatelessComponent<any>
             cellOpacity: number
             cellBorderWidth: number
-            cellBorderColor: string | GetColor<HeatMapDatumWithColor>
+            cellBorderColor: InheritedColorProp<HeatMapDatumWithColor>
 
-            axisTop: Axis
-            axisRight: Axis
-            axisBottom: Axis
-            axisLeft: Axis
+            axisTop: AxisProps | null
+            axisRight: AxisProps | null
+            axisBottom: AxisProps | null
+            axisLeft: AxisProps | null
 
             enableGridX: boolean
             enableGridY: boolean
 
             enableLabels: boolean
-            labelTextColor: string | GetColor<HeatMapDatumWithColor>
+            labelTextColor: InheritedColorProp<HeatMapDatumWithColor>
 
             isInteractive: boolean
             hoverTarget: 'cell' | 'row' | 'column' | 'rowColumn'
             cellHoverOpacity: number
             cellHoverOthersOpacity: number
             tooltipFormat: string | ValueFormatter
+            tooltip: React.StatelessComponent<BasicTooltipProps & NodeData>
 
             theme: Theme
         }>

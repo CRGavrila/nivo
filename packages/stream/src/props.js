@@ -8,21 +8,16 @@
  */
 import PropTypes from 'prop-types'
 import { areaCurvePropType, stackOrderPropType, stackOffsetPropType } from '@nivo/core'
+import { ordinalColorsPropType, inheritedColorPropType } from '@nivo/colors'
 import { LegendPropShape } from '@nivo/legends'
 import StreamDotsItem from './StreamDotsItem'
 
 export const StreamPropTypes = {
     data: PropTypes.arrayOf(PropTypes.object).isRequired,
     keys: PropTypes.array.isRequired,
-
-    stack: PropTypes.func.isRequired,
-    xScale: PropTypes.func.isRequired,
-    yScale: PropTypes.func.isRequired,
-
     order: stackOrderPropType.isRequired,
     offsetType: stackOffsetPropType.isRequired,
     curve: areaCurvePropType.isRequired,
-    areaGenerator: PropTypes.func.isRequired,
 
     axisTop: PropTypes.object,
     axisRight: PropTypes.object,
@@ -31,9 +26,8 @@ export const StreamPropTypes = {
     enableGridX: PropTypes.bool.isRequired,
     enableGridY: PropTypes.bool.isRequired,
 
-    colors: PropTypes.any.isRequired,
+    colors: ordinalColorsPropType.isRequired,
     fillOpacity: PropTypes.number.isRequired,
-    getColor: PropTypes.func.isRequired, // computed
     defs: PropTypes.arrayOf(
         PropTypes.shape({
             id: PropTypes.string.isRequired,
@@ -47,24 +41,19 @@ export const StreamPropTypes = {
         })
     ).isRequired,
     borderWidth: PropTypes.number.isRequired,
-    borderColor: PropTypes.any.isRequired,
-    getBorderColor: PropTypes.func.isRequired, // computed
+    borderColor: inheritedColorPropType.isRequired,
 
-    enableDots: PropTypes.oneOfType([PropTypes.bool, PropTypes.func]).isRequired,
-    renderDot: PropTypes.func.isRequired,
+    enableDots: PropTypes.bool.isRequired,
+    dotComponent: PropTypes.oneOfType([PropTypes.func, PropTypes.object]).isRequired,
     dotPosition: PropTypes.oneOf(['start', 'center', 'end']).isRequired,
     dotSize: PropTypes.oneOfType([PropTypes.number, PropTypes.func]).isRequired,
-    getDotSize: PropTypes.func.isRequired,
-    dotColor: PropTypes.any.isRequired,
+    dotColor: inheritedColorPropType.isRequired,
     dotBorderWidth: PropTypes.oneOfType([PropTypes.number, PropTypes.func]).isRequired,
-    getDotBorderWidth: PropTypes.func.isRequired,
-    dotBorderColor: PropTypes.any.isRequired,
+    dotBorderColor: inheritedColorPropType.isRequired,
 
     isInteractive: PropTypes.bool,
     tooltipLabel: PropTypes.func,
-    getTooltipLabel: PropTypes.func.isRequired,
     tooltipFormat: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
-    getTooltipValue: PropTypes.func.isRequired,
     enableStackTooltip: PropTypes.bool.isRequired,
 
     legends: PropTypes.arrayOf(PropTypes.shape(LegendPropShape)).isRequired,
@@ -80,24 +69,27 @@ export const StreamDefaultProps = {
     enableGridY: false,
 
     borderWidth: 0,
-    borderColor: 'inherit:darker(1)',
+    borderColor: { from: 'color', modifiers: [['darker', 1]] },
 
-    colors: 'nivo',
+    colors: { scheme: 'nivo' },
     fillOpacity: 1,
     defs: [],
     fill: [],
 
     enableDots: false,
     dotPosition: 'center',
-    renderDot: StreamDotsItem,
+    dotComponent: StreamDotsItem,
     dotSize: 6,
-    dotColor: 'inherit',
+    dotColor: { from: 'color' },
     dotBorderWidth: 0,
-    dotBorderColor: 'inherit',
+    dotBorderColor: { from: 'color' },
 
     isInteractive: true,
 
     enableStackTooltip: true,
 
     legends: [],
+
+    animate: true,
+    motionConfig: 'gentle',
 }

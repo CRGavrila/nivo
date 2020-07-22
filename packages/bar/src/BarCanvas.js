@@ -9,15 +9,10 @@
 import React, { Component } from 'react'
 import uniqBy from 'lodash/uniqBy'
 import setDisplayName from 'recompose/setDisplayName'
-import {
-    getRelativeCursor,
-    isCursorInRect,
-    Container,
-    BasicTooltip,
-    renderGridLinesToCanvas,
-} from '@nivo/core'
-import { renderAxesToCanvas } from '@nivo/axes'
+import { getRelativeCursor, isCursorInRect, Container } from '@nivo/core'
+import { renderAxesToCanvas, renderGridLinesToCanvas } from '@nivo/axes'
 import { renderLegendToCanvas } from '@nivo/legends'
+import { BasicTooltip } from '@nivo/tooltip'
 import { generateGroupedBars, generateStackedBars } from './compute'
 import { BarPropTypes } from './props'
 import enhance from './enhance'
@@ -80,11 +75,15 @@ class BarCanvas extends Component {
 
             theme,
             getColor,
+            borderWidth,
+            getBorderColor,
 
             legends,
 
             enableGridX,
+            gridXValues,
             enableGridY,
+            gridYValues,
         } = props
 
         this.surface.width = outerWidth * pixelRatio
@@ -116,21 +115,28 @@ class BarCanvas extends Component {
         this.ctx.fillRect(0, 0, outerWidth, outerHeight)
         this.ctx.translate(margin.left, margin.top)
 
-        this.ctx.strokeStyle = '#dddddd'
-        enableGridX &&
-            renderGridLinesToCanvas(this.ctx, {
-                width,
-                height,
-                scale: result.xScale,
-                axis: 'x',
-            })
-        enableGridY &&
-            renderGridLinesToCanvas(this.ctx, {
-                width,
-                height,
-                scale: result.yScale,
-                axis: 'y',
-            })
+        if (theme.grid.line.strokeWidth > 0) {
+            this.ctx.lineWidth = theme.grid.line.strokeWidth
+            this.ctx.strokeStyle = theme.grid.line.stroke
+
+            enableGridX &&
+                renderGridLinesToCanvas(this.ctx, {
+                    width,
+                    height,
+                    scale: result.xScale,
+                    axis: 'x',
+                    values: gridXValues,
+                })
+
+            enableGridY &&
+                renderGridLinesToCanvas(this.ctx, {
+                    width,
+                    height,
+                    scale: result.yScale,
+                    axis: 'y',
+                    values: gridYValues,
+                })
+        }
 
         this.ctx.strokeStyle = '#dddddd'
 
@@ -171,6 +177,7 @@ class BarCanvas extends Component {
                 containerHeight: height,
                 itemTextColor: '#999',
                 symbolSize: 16,
+                theme,
             })
         })
 
@@ -186,9 +193,22 @@ class BarCanvas extends Component {
             theme,
         })
 
-        result.bars.forEach(({ x, y, color, width, height }) => {
+        result.bars.forEach(bar => {
+            const { x, y, color, width, height } = bar
+
             this.ctx.fillStyle = color
-            this.ctx.fillRect(x, y, width, height)
+            if (borderWidth > 0) {
+                this.ctx.strokeStyle = getBorderColor(bar)
+                this.ctx.lineWidth = borderWidth
+            }
+
+            this.ctx.beginPath()
+            this.ctx.rect(x, y, width, height)
+            this.ctx.fill()
+
+            if (borderWidth > 0) {
+                this.ctx.stroke()
+            }
         })
     }
 
@@ -240,7 +260,7 @@ class BarCanvas extends Component {
         const { outerWidth, outerHeight, pixelRatio, isInteractive, theme } = this.props
 
         return (
-            <Container isInteractive={isInteractive} theme={theme}>
+            <Container isInteractive={isInteractive} theme={theme} animate={false}>
                 {({ showTooltip, hideTooltip }) => (
                     <canvas
                         ref={surface => {

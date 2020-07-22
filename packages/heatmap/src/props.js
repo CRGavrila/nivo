@@ -8,12 +8,12 @@
  */
 import PropTypes from 'prop-types'
 import { quantizeColorScalePropType, noop } from '@nivo/core'
+import { inheritedColorPropType } from '@nivo/colors'
 import { axisPropType } from '@nivo/axes'
 
 export const HeatMapPropTypes = {
     data: PropTypes.arrayOf(PropTypes.object).isRequired,
     indexBy: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
-    getIndex: PropTypes.func.isRequired, // computed
     keys: PropTypes.arrayOf(PropTypes.string).isRequired,
 
     minValue: PropTypes.oneOfType([PropTypes.oneOf(['auto']), PropTypes.number]).isRequired,
@@ -27,8 +27,7 @@ export const HeatMapPropTypes = {
         .isRequired,
     cellOpacity: PropTypes.number.isRequired,
     cellBorderWidth: PropTypes.number.isRequired,
-    cellBorderColor: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
-    getCellBorderColor: PropTypes.func.isRequired, // computed
+    cellBorderColor: inheritedColorPropType.isRequired,
 
     axisTop: axisPropType,
     axisRight: axisPropType,
@@ -39,11 +38,9 @@ export const HeatMapPropTypes = {
     enableGridY: PropTypes.bool.isRequired,
 
     enableLabels: PropTypes.bool.isRequired,
-    labelTextColor: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
-    getLabelTextColor: PropTypes.func.isRequired, // computed
+    labelTextColor: inheritedColorPropType.isRequired,
 
     colors: quantizeColorScalePropType.isRequired,
-    colorScale: PropTypes.func.isRequired, // computed
     nanColor: PropTypes.string,
 
     isInteractive: PropTypes.bool,
@@ -71,7 +68,7 @@ export const HeatMapDefaultProps = {
     cellShape: 'rect',
     cellOpacity: 0.85,
     cellBorderWidth: 0,
-    cellBorderColor: 'inherit',
+    cellBorderColor: { from: 'color' },
 
     // axes & grid
     axisTop: {},
@@ -81,7 +78,7 @@ export const HeatMapDefaultProps = {
 
     // labels
     enableLabels: true,
-    labelTextColor: 'inherit:darker(1.4)',
+    labelTextColor: { from: 'color', modifiers: [['darker', 1.4]] },
 
     // theming
     colors: 'nivo',

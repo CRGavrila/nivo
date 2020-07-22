@@ -7,59 +7,63 @@
  * file that was distributed with this source code.
  */
 import PropTypes from 'prop-types'
-import { noop } from '@nivo/core'
 import { treeMapTilePropType, defsPropTypes } from '@nivo/core'
+import {
+    ordinalColorsPropType,
+    colorPropertyAccessorPropType,
+    inheritedColorPropType,
+} from '@nivo/colors'
 import TreeMapNode from './TreeMapNode'
 import TreeMapHtmlNode from './TreeMapHtmlNode'
 
-/*—————————————————————————————————————————————————————————————————————————————
-
-  Prop types
-
-—————————————————————————————————————————————————————————————————————————————*/
-
 const commonPropTypes = {
-    // data
-    // `root` managed by `withHierarchy()` HOC
     identity: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
+    value: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
+    valueFormat: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
 
-    // dimensions managed by `withDimensions()` HOC
-
-    // styling
-    // theme managed by `withTheme()` HOC
-    // colors managed by `withColors()` HOC
+    colors: ordinalColorsPropType.isRequired,
+    colorBy: colorPropertyAccessorPropType.isRequired,
+    nodeOpacity: PropTypes.number.isRequired,
 
     leavesOnly: PropTypes.bool.isRequired,
     tile: treeMapTilePropType.isRequired,
     innerPadding: PropTypes.number.isRequired,
     outerPadding: PropTypes.number.isRequired,
 
-    // labels
     enableLabel: PropTypes.bool.isRequired,
     label: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
     labelFormat: PropTypes.string,
     labelSkipSize: PropTypes.number.isRequired,
+    labelTextColor: inheritedColorPropType.isRequired,
     orientLabel: PropTypes.bool.isRequired,
 
-    // border
-    borderWidth: PropTypes.number.isRequired,
-    borderColor: PropTypes.any.isRequired,
+    enableParentLabel: PropTypes.bool.isRequired,
+    parentLabel: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
+    parentLabelSize: PropTypes.number.isRequired,
+    parentLabelPosition: PropTypes.oneOf(['top', 'right', 'bottom', 'left']).isRequired,
+    parentLabelPadding: PropTypes.number.isRequired,
+    parentLabelTextColor: inheritedColorPropType.isRequired,
 
-    // interactivity
+    borderWidth: PropTypes.number.isRequired,
+    borderColor: inheritedColorPropType.isRequired,
+
     isInteractive: PropTypes.bool.isRequired,
-    onClick: PropTypes.func.isRequired,
+    onMouseEnter: PropTypes.func,
+    onMouseMove: PropTypes.func,
+    onMouseLeave: PropTypes.func,
+    onClick: PropTypes.func,
     tooltip: PropTypes.func,
 }
 
 export const TreeMapPropTypes = {
     ...commonPropTypes,
-    nodeComponent: PropTypes.func.isRequired,
+    nodeComponent: PropTypes.elementType.isRequired,
     ...defsPropTypes,
 }
 
 export const TreeMapHtmlPropTypes = {
     ...commonPropTypes,
-    nodeComponent: PropTypes.func.isRequired,
+    nodeComponent: PropTypes.elementType.isRequired,
 }
 
 export const TreeMapCanvasPropTypes = {
@@ -67,35 +71,39 @@ export const TreeMapCanvasPropTypes = {
     pixelRatio: PropTypes.number.isRequired,
 }
 
-/*—————————————————————————————————————————————————————————————————————————————
-
-  Default props
-
-—————————————————————————————————————————————————————————————————————————————*/
-
 const commonDefaultProps = {
-    // data
     identity: 'id',
+    value: 'value',
 
     tile: 'squarify',
     leavesOnly: false,
-
-    // labels
-    enableLabel: true,
-    label: 'id',
-    labelSkipSize: 0,
-    labelTextColor: 'inherit:darker(1)',
-    orientLabel: true,
-
     innerPadding: 0,
     outerPadding: 0,
 
-    borderWidth: 0,
-    borderColor: 'inherit',
+    colors: { scheme: 'nivo' },
+    colorBy: 'pathComponents.1',
+    nodeOpacity: 0.33,
 
-    // interactivity
+    enableLabel: true,
+    label: 'formattedValue',
+    labelSkipSize: 0,
+    labelTextColor: { from: 'color', modifiers: [['darker', 1]] },
+    orientLabel: true,
+
+    enableParentLabel: true,
+    parentLabel: 'id',
+    parentLabelSize: 20,
+    parentLabelPosition: 'top',
+    parentLabelPadding: 6,
+    parentLabelTextColor: { from: 'color', modifiers: [['darker', 1]] },
+
+    borderWidth: 1,
+    borderColor: { from: 'color', modifiers: [['darker', 1]] },
+
     isInteractive: true,
-    onClick: noop,
+
+    animate: true,
+    motionConfig: 'gentle',
 }
 
 export const TreeMapDefaultProps = {

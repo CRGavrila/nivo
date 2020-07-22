@@ -10,45 +10,39 @@
 
 const Joi = require('joi')
 const { Pie } = require('@nivo/pie')
-const common = require('./common')
+const { ordinalColors, inheritedColor } = require('./commons/colors')
+const { dimensions } = require('./commons/dimensions')
 
 module.exports = {
     component: Pie,
     schema: Joi.object().keys(
-        Object.assign({}, common.dimensions, {
-            // data
-            data: Joi.array()
-                .min(1)
-                .required(),
+        Object.assign({}, dimensions, {
+            data: Joi.array().min(1).required(),
 
             innerRadius: Joi.number().min(0),
             padAngle: Joi.number().min(0),
             cornerRadius: Joi.number().min(0),
 
-            // border
             borderWidth: Joi.number().min(0),
-            borderColor: Joi.string(),
+            borderColor: inheritedColor,
 
-            // radial labels
             enableRadialLabels: Joi.boolean(),
             radialLabel: Joi.string(),
             radialLabelsSkipAngle: Joi.number().min(0),
             radialLabelsTextXOffset: Joi.number(),
-            radialLabelsTextColor: Joi.string(),
+            radialLabelsTextColor: inheritedColor,
             radialLabelsLinkOffset: Joi.number(),
             radialLabelsLinkDiagonalLength: Joi.number(),
             radialLabelsLinkHorizontalLength: Joi.number(),
             radialLabelsLinkStrokeWidth: Joi.number().min(0),
-            radialLabelsLinkColor: Joi.string(),
+            radialLabelsLinkColor: inheritedColor,
 
-            // slice labels
             enableSlicesLabels: Joi.boolean(),
             sliceLabel: Joi.string(),
             slicesLabelsSkipAngle: Joi.number().min(0),
-            slicesLabelsTextColor: Joi.string(),
+            slicesLabelsTextColor: inheritedColor,
 
-            // theming
-            colors: Joi.string(),
+            colors: ordinalColors,
             colorBy: Joi.string(),
         })
     ),

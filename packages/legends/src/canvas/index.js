@@ -21,6 +21,7 @@ const textPropsMapping = {
     baseline: {
         hanging: 'top',
         middle: 'middle',
+        central: 'middle',
         baseline: 'bottom',
     },
 }
@@ -51,6 +52,8 @@ export const renderLegendToCanvas = (
         symbolSpacing = LegendSvgItem.defaultProps.symbolSpacing,
         // @todo add support for shapes
         // symbolShape = LegendSvgItem.defaultProps.symbolShape,
+
+        theme,
     }
 ) => {
     const { width, height, padding } = computeDimensions({
@@ -83,6 +86,8 @@ export const renderLegendToCanvas = (
     ctx.save()
     ctx.translate(x, y)
 
+    ctx.font = `${theme.legends.text.fontSize}px ${theme.legends.text.fontFamily || 'sans-serif'}`
+
     data.forEach((d, i) => {
         const itemX = i * xStep + padding.left
         const itemY = i * yStep + padding.top
@@ -103,7 +108,7 @@ export const renderLegendToCanvas = (
 
         ctx.textAlign = textPropsMapping.align[labelAnchor]
         ctx.textBaseline = textPropsMapping.baseline[labelAlignment]
-        ctx.fillStyle = itemTextColor
+        ctx.fillStyle = itemTextColor || theme.legends.text.fill
         ctx.fillText(d.label, itemX + labelX, itemY + labelY)
     })
 

@@ -6,9 +6,9 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-import React from 'react'
+import React, { memo } from 'react'
 import PropTypes from 'prop-types'
-import pure from 'recompose/pure'
+import { useTheme } from '../../../theming'
 
 /**
  *
@@ -168,7 +168,6 @@ const CartesianMarkersItem = ({
     axis,
     scale,
     value,
-    theme,
     lineStyle,
     textStyle,
     legend,
@@ -177,6 +176,8 @@ const CartesianMarkersItem = ({
     legendOffsetY,
     legendOrientation,
 }) => {
+    const theme = useTheme()
+
     let x = 0
     let x2 = 0
     let y = 0
@@ -203,11 +204,9 @@ const CartesianMarkersItem = ({
         })
         legendNode = (
             <text
-                transform={`translate(${legendProps.x}, ${legendProps.y}) rotate(${
-                    legendProps.rotation
-                })`}
+                transform={`translate(${legendProps.x}, ${legendProps.y}) rotate(${legendProps.rotation})`}
                 textAnchor={legendProps.textAnchor}
-                alignmentBaseline="central"
+                dominantBaseline="central"
                 style={textStyle}
             >
                 {legend}
@@ -237,7 +236,8 @@ CartesianMarkersItem.propTypes = {
 
     axis: PropTypes.oneOf(['x', 'y']).isRequired,
     scale: PropTypes.func.isRequired,
-    value: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
+    value: PropTypes.oneOfType([PropTypes.number, PropTypes.string, PropTypes.instanceOf(Date)])
+        .isRequired,
     lineStyle: PropTypes.object,
     textStyle: PropTypes.object,
 
@@ -255,15 +255,7 @@ CartesianMarkersItem.propTypes = {
     legendOffsetX: PropTypes.number.isRequired,
     legendOffsetY: PropTypes.number.isRequired,
     legendOrientation: PropTypes.oneOf(['horizontal', 'vertical']).isRequired,
-
-    theme: PropTypes.shape({
-        markers: PropTypes.shape({
-            textColor: PropTypes.string.isRequired,
-            fontSize: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
-        }).isRequired,
-    }).isRequired,
 }
-
 CartesianMarkersItem.defaultProps = {
     legendPosition: 'top-right',
     legendOffsetX: 14,
@@ -271,4 +263,4 @@ CartesianMarkersItem.defaultProps = {
     legendOrientation: 'horizontal',
 }
 
-export default pure(CartesianMarkersItem)
+export default memo(CartesianMarkersItem)

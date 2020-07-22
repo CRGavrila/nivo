@@ -75,7 +75,9 @@ export class Bullet extends Component {
 
             const max = Math.max(...all)
 
-            const scale = scaleLinear().domain([0, max])
+            const min = Math.min(...all, 0)
+
+            const scale = scaleLinear().domain([min, max])
 
             if (layout === 'horizontal') {
                 scale.range(reverse === true ? [width, 0] : [0, width])
@@ -89,14 +91,14 @@ export class Bullet extends Component {
             }
         })
 
-        const motionProps = {
-            animate,
-            motionDamping,
-            motionStiffness,
-        }
-
         return (
-            <Container isInteractive={isInteractive} theme={theme}>
+            <Container
+                isInteractive={isInteractive}
+                theme={theme}
+                animate={animate}
+                motionStiffness={motionStiffness}
+                motionDamping={motionDamping}
+            >
                 {({ showTooltip, hideTooltip }) => (
                     <SvgWrapper
                         width={outerWidth}
@@ -129,7 +131,9 @@ export class Bullet extends Component {
                                 markerColors={markerColors}
                                 theme={theme}
                                 axisPosition={axisPosition}
-                                {...motionProps}
+                                animate={animate}
+                                motionStiffness={motionStiffness}
+                                motionDamping={motionDamping}
                                 showTooltip={showTooltip}
                                 hideTooltip={hideTooltip}
                                 onRangeClick={onRangeClick}

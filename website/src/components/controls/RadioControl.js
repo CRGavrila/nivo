@@ -6,54 +6,47 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-import React, { Component } from 'react'
+import React, { memo, useCallback } from 'react'
 import PropTypes from 'prop-types'
-import className from 'classnames'
+import Control from './Control'
+import PropertyHeader from './PropertyHeader'
+import { Help } from './styled'
+import Radio from './Radio'
 
-export default class RadioControl extends Component {
-    static propTypes = {
-        label: PropTypes.string.isRequired,
-        value: PropTypes.string.isRequired,
-        onChange: PropTypes.func.isRequired,
-        help: PropTypes.node.isRequired,
+const RadioControl = memo(({ id, property, flavors, currentFlavor, options, value, onChange }) => {
+    const handleUpdate = useCallback(event => onChange(event.target.value), [onChange])
+
+    return (
+        <Control
+            id={id}
+            description={property.description}
+            flavors={flavors}
+            currentFlavor={currentFlavor}
+            supportedFlavors={property.flavors}
+        >
+            <PropertyHeader {...property} />
+            <Radio options={options.choices} value={value} onChange={handleUpdate} />
+            <Help>{property.help}</Help>
+        </Control>
+    )
+})
+
+RadioControl.displayName = 'RadioControl'
+RadioControl.propTypes = {
+    id: PropTypes.string.isRequired,
+    property: PropTypes.object.isRequired,
+    flavors: PropTypes.arrayOf(PropTypes.oneOf(['svg', 'html', 'canvas', 'api'])).isRequired,
+    currentFlavor: PropTypes.oneOf(['svg', 'html', 'canvas', 'api']).isRequired,
+    value: PropTypes.string.isRequired,
+    options: PropTypes.shape({
         choices: PropTypes.arrayOf(
             PropTypes.shape({
                 value: PropTypes.string.isRequired,
                 label: PropTypes.string.isRequired,
             })
         ).isRequired,
-    }
-
-    shouldComponentUpdate(nextProps) {
-        return nextProps.value !== this.props.value
-    }
-
-    render() {
-        const { label, value, onChange, choices, help } = this.props
-
-        return (
-            <div className="chart-controls_item">
-                <span className="control_label">{label}</span>
-                <div className="control-radio">
-                    {choices.map(choice => (
-                        <label
-                            className={className('control-radio-item', {
-                                '_is-active': value === choice.value,
-                            })}
-                            key={choice.value}
-                        >
-                            <input
-                                type="radio"
-                                value={choice.value}
-                                checked={value === choice.value}
-                                onChange={onChange}
-                            />
-                            {choice.label}
-                        </label>
-                    ))}
-                </div>
-                <div className="control-help">{help}</div>
-            </div>
-        )
-    }
+    }).isRequired,
+    onChange: PropTypes.func.isRequired,
 }
+
+export default RadioControl

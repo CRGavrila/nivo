@@ -8,6 +8,11 @@
  */
 import PropTypes from 'prop-types'
 import { noop, defsPropTypes } from '@nivo/core'
+import {
+    ordinalColorsPropType,
+    colorPropertyAccessorPropType,
+    inheritedColorPropType,
+} from '@nivo/colors'
 import { axisPropType } from '@nivo/axes'
 import { LegendPropShape } from '@nivo/legends'
 import BarItem from './BarItem'
@@ -19,7 +24,7 @@ export const BarPropTypes = {
     keys: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.number])).isRequired,
     layers: PropTypes.arrayOf(
         PropTypes.oneOfType([
-            PropTypes.oneOf(['grid', 'axes', 'bars', 'markers', 'legends']),
+            PropTypes.oneOf(['grid', 'axes', 'bars', 'markers', 'legends', 'annotations']),
             PropTypes.func,
         ])
     ).isRequired,
@@ -39,8 +44,14 @@ export const BarPropTypes = {
     axisLeft: axisPropType,
     enableGridX: PropTypes.bool.isRequired,
     enableGridY: PropTypes.bool.isRequired,
-    gridXValues: PropTypes.arrayOf(PropTypes.number),
-    gridYValues: PropTypes.arrayOf(PropTypes.number),
+    gridXValues: PropTypes.oneOfType([
+        PropTypes.number,
+        PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.number, PropTypes.string])),
+    ]),
+    gridYValues: PropTypes.oneOfType([
+        PropTypes.number,
+        PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.number, PropTypes.string])),
+    ]),
 
     barComponent: PropTypes.func.isRequired,
 
@@ -50,16 +61,18 @@ export const BarPropTypes = {
     getLabel: PropTypes.func.isRequired, // computed
     labelSkipWidth: PropTypes.number.isRequired,
     labelSkipHeight: PropTypes.number.isRequired,
-    labelTextColor: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
+    labelTextColor: inheritedColorPropType.isRequired,
     getLabelTextColor: PropTypes.func.isRequired, // computed
-    labelLinkColor: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
+    labelLinkColor: inheritedColorPropType.isRequired,
     getLabelLinkColor: PropTypes.func.isRequired, // computed
 
+    colors: ordinalColorsPropType.isRequired,
+    colorBy: colorPropertyAccessorPropType.isRequired,
     borderRadius: PropTypes.number.isRequired,
     getColor: PropTypes.func.isRequired, // computed
     ...defsPropTypes,
     borderWidth: PropTypes.number.isRequired,
-    borderColor: PropTypes.any.isRequired,
+    borderColor: inheritedColorPropType.isRequired,
     getBorderColor: PropTypes.func.isRequired,
 
     isInteractive: PropTypes.bool,
@@ -78,14 +91,13 @@ export const BarPropTypes = {
         })
     ).isRequired,
 
-    // canvas specific
     pixelRatio: PropTypes.number.isRequired,
 }
 
 export const BarDefaultProps = {
     indexBy: 'id',
     keys: ['value'],
-    layers: ['grid', 'axes', 'bars', 'markers', 'legends'],
+    layers: ['grid', 'axes', 'bars', 'markers', 'legends', 'annotations'],
 
     groupMode: 'stacked',
     layout: 'vertical',
@@ -110,11 +122,13 @@ export const BarDefaultProps = {
     labelLinkColor: 'theme',
     labelTextColor: 'theme',
 
+    colors: { scheme: 'nivo' },
+    colorBy: 'id',
     defs: [],
     fill: [],
     borderRadius: 0,
     borderWidth: 0,
-    borderColor: 'inherit',
+    borderColor: { from: 'color' },
 
     isInteractive: true,
     onClick: noop,
@@ -123,7 +137,8 @@ export const BarDefaultProps = {
 
     legends: [],
 
-    // canvas specific
+    annotations: [],
+
     pixelRatio:
         global.window && global.window.devicePixelRatio ? global.window.devicePixelRatio : 1,
 }

@@ -7,15 +7,15 @@
  * file that was distributed with this source code.
  */
 import React, { Fragment } from 'react'
-import uniqBy from 'lodash/uniqBy'
 import { TransitionMotion, spring } from 'react-motion'
-import { bindDefs, Container, SvgWrapper, Grid, CartesianMarkers } from '@nivo/core'
-import { Axes } from '@nivo/axes'
+import { bindDefs, Container, SvgWrapper, CartesianMarkers } from '@nivo/core'
+import { Axes, Grid } from '@nivo/axes'
 import { BoxLegendSvg } from '@nivo/legends'
-import { generateGroupedBars, generateStackedBars } from './compute'
+import { generateGroupedBars, generateStackedBars, getLegendData } from './compute'
 import setDisplayName from 'recompose/setDisplayName'
 import enhance from './enhance'
 import { BarPropTypes } from './props'
+import BarAnnotations from './BarAnnotations'
 
 const barWillEnterHorizontal = ({ style }) => ({
     x: style.x.val,
@@ -93,9 +93,7 @@ const Bar = props => {
         borderWidth,
         getBorderColor,
 
-        animate,
-        motionStiffness,
-        motionDamping,
+        annotations,
 
         isInteractive,
         getTooltipLabel,
@@ -106,6 +104,10 @@ const Bar = props => {
         onMouseLeave,
 
         legends,
+
+        animate,
+        motionStiffness,
+        motionDamping,
     } = props
     const options = {
         layout,
@@ -153,30 +155,14 @@ const Bar = props => {
         targetKey: 'data.fill',
     })
 
-    const legendDataForKeys = uniqBy(
-        result.bars
-            .map(bar => ({
-                id: bar.data.id,
-                label: bar.data.id,
-                color: bar.color,
-                fill: bar.data.fill,
-            }))
-            .reverse(),
-        ({ id }) => id
-    )
-
-    const legendDataForIndexes = uniqBy(
-        result.bars.map(bar => ({
-            id: bar.data.indexValue,
-            label: bar.data.indexValue,
-            color: bar.color,
-            fill: bar.data.fill,
-        })),
-        ({ id }) => id
-    )
-
     return (
-        <Container isInteractive={isInteractive} theme={theme}>
+        <Container
+            isInteractive={isInteractive}
+            theme={theme}
+            animate={animate}
+            motionStiffness={motionStiffness}
+            motionDamping={motionDamping}
+        >
             {({ showTooltip, hideTooltip }) => {
                 const commonProps = {
                     borderRadius,
@@ -254,14 +240,12 @@ const Bar = props => {
                     grid: (
                         <Grid
                             key="grid"
-                            theme={theme}
                             width={width}
                             height={height}
                             xScale={enableGridX ? result.xScale : null}
                             yScale={enableGridY ? result.yScale : null}
                             xValues={gridXValues}
                             yValues={gridYValues}
-                            {...motionProps}
                         />
                     ),
                     axes: (
@@ -271,12 +255,10 @@ const Bar = props => {
                             yScale={result.yScale}
                             width={width}
                             height={height}
-                            theme={theme}
                             top={axisTop}
                             right={axisRight}
                             bottom={axisBottom}
                             left={axisLeft}
-                            {...motionProps}
                         />
                     ),
                     bars,
@@ -292,12 +274,14 @@ const Bar = props => {
                         />
                     ),
                     legends: legends.map((legend, i) => {
-                        let legendData
-                        if (legend.dataFrom === 'keys') {
-                            legendData = legendDataForKeys
-                        } else if (legend.dataFrom === 'indexes') {
-                            legendData = legendDataForIndexes
-                        }
+                        const legendData = getLegendData({
+                            from: legend.dataFrom,
+                            bars: result.bars,
+                            layout,
+                            direction: legend.direction,
+                            groupMode,
+                            reverse,
+                        })
 
                         if (legendData === undefined) return null
 
@@ -312,6 +296,16 @@ const Bar = props => {
                             />
                         )
                     }),
+                    annotations: (
+                        <BarAnnotations
+                            key="annotations"
+                            innerWidth={width}
+                            innerHeight={height}
+                            bars={result.bars}
+                            annotations={annotations}
+                            {...motionProps}
+                        />
+                    ),
                 }
 
                 return (
@@ -324,7 +318,11 @@ const Bar = props => {
                     >
                         {layers.map((layer, i) => {
                             if (typeof layer === 'function') {
-                                return <Fragment key={i}>{layer({ ...props, ...result })}</Fragment>
+                                return (
+                                    <Fragment key={i}>
+                                        {layer({ ...props, ...result, showTooltip, hideTooltip })}
+                                    </Fragment>
+                                )
                             }
                             return layerById[layer]
                         })}
